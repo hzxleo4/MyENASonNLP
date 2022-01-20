@@ -22,7 +22,7 @@ def create_dataset(p_val=0.1, p_test=0.2):
     np.random.seed(0)
     num_samples = 1000
 
-    #X, y = sklearn.datasets.make_moons(num_samples, noise=0.2)
+    #读取从Generate_database.ipynb生成的数据
     X,y = np.loadtxt("X.txt", dtype=int, delimiter=","),np.loadtxt("y.txt", dtype=int, delimiter=",")
     train_end = int(len(X)*(1-p_val-p_test))
     val_end = int(len(X)*(1-p_test))
@@ -43,13 +43,14 @@ def create_dataset(p_val=0.1, p_test=0.2):
 class Net(nn.Module):
 
     def __init__(self,num_features, num_classes): 
-        #layers为一个列表，里面存储着一个顺序的网络结构
         #根据已经搜索出来的网络结构来创建一个实例
         super(Net, self).__init__()
         #share module
         self.node_hidden_units = [num_features,32,64,64,32,num_classes]
+        #这是DAG，采用edge-list模式来存储
         self.edges = [(0,1),(0,2),(0,3),(0,4),(0,5),(1,2),(1,3),(1,4),(1,5),(2,3),(2,4),(2,5),(3,4),(3,5),(4,5)]
         self.share_edges_model = []
+        #建立共享参数
         for s,t in self.edges:
             s_units = self.node_hidden_units[s]
             t_units = self.node_hidden_units[t]
@@ -97,6 +98,7 @@ class ChildNet():
         self.net = Net(X_tr.shape[-1],2)
     def compute_reward(self, edges,acts, num_epochs):
         # store loss and accuracy for information
+        #利用传进来的边的编号和激活函数的编号设置好这次的前向传播函数
         self.net.add_layers(edges,acts)
         #print(self.net)
         train_losses = []
